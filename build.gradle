@@ -1,0 +1,62 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '2.1.21'
+    id 'application'
+    id 'jacoco'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+test {
+    useJUnit()
+    finalizedBy(tasks.jacocoTestReport)
+}
+kotlin {
+    jvmToolchain(21)
+}
+tasks.withType(JavaExec).configureEach {
+    jvmArgs(
+            '-Dfile.encoding=UTF-8',
+            '-Dstdout.encoding=UTF-8',
+            '-Dstderr.encoding=UTF-8'
+    )
+}
+application {
+    mainClass = 'MainKt'
+}
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "BRANCH"
+                minimum = 0.70
+            }
+        }
+    }
+}
+// 3. Связать с задачей check, чтобы при выполнении check или build происходила проверка
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
